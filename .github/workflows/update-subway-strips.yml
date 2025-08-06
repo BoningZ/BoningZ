@@ -13,7 +13,7 @@ jobs:
       TARGET_SIZE: 1200x300
       LONDON_URL:  https://tfl.gov.uk/cdn/static/cms/images/london-rail-and-tube-services-map.gif
       TOKYO_URL:   https://www.tokyometro.jp/station/202303_number_ja.pdf
-      BEIJING_URL: https://cdnwww.mtr.bj.cn/bjmtr/default/wzOcGboigSuVhbSIGeFgH.jpg   # ← 新地址
+      BEIJING_URL: https://imgbdb4.bendibao.com/bjbdb/202412/13/20241213172847_31099.jpg
 
     steps:
       # ① 检出仓库（改成多行写法）

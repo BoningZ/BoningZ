@@ -7,22 +7,27 @@ on:
 jobs:
   fetch-crop-push:
     runs-on: ubuntu-latest
+
     env:
       MAP_DIR: assets/maps
       TARGET_SIZE: 1200x300
       LONDON_URL:  https://tfl.gov.uk/cdn/static/cms/images/london-rail-and-tube-services-map.gif
       TOKYO_URL:   https://www.tokyometro.jp/station/202303_number_ja.pdf
       BEIJING_URL: https://cdnwww.mtr.bj.cn/bjmtr/default/wzOcGboigSuVhbSIGeFgH.jpg   # ← 新地址
-    steps:
-      - uses: actions/checkout@v4
-        with: { token: ${{ secrets.METRICS_TOKEN }} }
 
+    steps:
+      # ① 检出仓库（改成多行写法）
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.METRICS_TOKEN }}
+
+      # ② 安装依赖
       - name: Install deps
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ghostscript imagemagick curl
 
-      # ① 下载三张源图
+      # ③ 下载三张源图
       - name: Download originals
         run: |
           mkdir -p $MAP_DIR/original
@@ -30,7 +35,7 @@ jobs:
           curl -L -o $MAP_DIR/original/tokyo.pdf    "$TOKYO_URL"
           curl -L -o $MAP_DIR/original/beijing.jpg  "$BEIJING_URL"
 
-      # ② 裁剪 ➜ 统一尺寸
+      # ④ 裁剪 ➜ 统一尺寸
       - name: Crop centre strips
         run: |
           mkdir -p $MAP_DIR/cropped
@@ -40,24 +45,25 @@ jobs:
           gs -q -sDEVICE=pngalpha -r300 -o /tmp/tokyo.png $MAP_DIR/original/tokyo.pdf
           convert /tmp/tokyo.png                -crop 2400x600+300+1850 +repage -resize "$TARGET_SIZE!" -strip $MAP_DIR/cropped/tokyo-centre.png
 
-      # …前半部分与之前一致（下载 + 裁剪）…
-
-      # ③ 把三种日期写回 README
+      # ⑤ 把三种日期写回 README（保持不变）
       - name: Update README dates
         run: |
-          Y=$(date +%Y) ; M=$(date +%-m) ; D=$(date +%-d)
-          EN="${Y}-$(printf '%02d' $M)-$(printf '%02d' $D)"           # 2025-08-06
-          CN="${Y}年${M}月${D}日"                                      # 2025年8月6日
-          ERA=$((Y-2018)) ; JP="令和${ERA}年${M}月${D}日"              # 令和7年8月6日
+          Y=$(date +%Y); M=$(date +%-m); D=$(date +%-d)
+          EN="${Y}-$(printf '%02d' $M)-$(printf '%02d' $D)"
+          CN="${Y}年${M}月${D}日"
+          ERA=$((Y-2018)); JP="令和${ERA}年${M}月${D}日"
 
           sed -i -E "s|(<!--MAP_UPDATE_DATE_EN-->).*?(<!--/MAP_UPDATE_DATE_EN-->)|\1${EN}\2|" README.md
           sed -i -E "s|(<!--MAP_UPDATE_DATE_CN-->).*?(<!--/MAP_UPDATE_DATE_CN-->)|\1${CN}\2|" README.md
           sed -i -E "s|(<!--MAP_UPDATE_DATE_JP-->).*?(<!--/MAP_UPDATE_DATE_JP-->)|\1${JP}\2|" README.md
 
-      # ④ 仅在有变化时提交
+      # ⑥ 仅在有变化时提交
       - name: Commit & push if changed
         run: |
           git config user.name  github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
           git add assets/maps/cropped/* README.md
-          git diff --cached --quiet || { git commit -m "chore: subway strips & date update $(date +'%F')" && git push ; }
+          git diff --cached --quiet || {
+            git commit -m "chore: subway strips & date update $(date +'%F')"
+            git push
+          }

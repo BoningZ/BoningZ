@@ -1,0 +1,64 @@
+name: Update & crop subway strips daily
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  fetch-crop-push:
+    runs-on: ubuntu-latest
+    env:
+      MAP_DIR: assets/maps
+      TARGET_SIZE: 1200x300
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.METRICS_TOKEN }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghostscript imagemagick curl
+
+      # ---------- 1. 下载最新地图 ----------
+      - name: Download originals
+        run: |
+          mkdir -p $MAP_DIR/original
+          curl -L -o $MAP_DIR/original/london.gif  https://tfl.gov.uk/cdn/static/cms/images/london-rail-and-tube-services-map.gif
+          curl -L -o $MAP_DIR/original/beijing.jpg $(curl -sL https://www.bjsubway.com/jpg.html?pic=2024 | grep -oP '(?<=src=").+?\.jpg')
+          curl -L -o $MAP_DIR/original/tokyo.pdf   https://www.tokyometro.jp/station/202303_number_ja.pdf   # ← 新链接
+
+      # ---------- 2. 裁剪成统一尺寸横幅 ----------
+      - name: Crop centre strips
+        run: |
+          mkdir -p $MAP_DIR/cropped
+
+          # London —— 请替换为你的坐标
+          convert $MAP_DIR/original/london.gif \
+                  -crop 2500x600+200+1600 +repage \
+                  -resize "$TARGET_SIZE!" -strip \
+                  $MAP_DIR/cropped/london-centre.png
+
+          # Beijing —— 请替换为你的坐标
+          convert $MAP_DIR/original/beijing.jpg \
+                  -crop 1800x500+900+1800 +repage \
+                  -resize "$TARGET_SIZE!" -strip \
+                  $MAP_DIR/cropped/beijing-centre.png
+
+          # Tokyo —— 先 PDF→PNG，再裁剪；请替换为你的坐标
+          gs -q -sDEVICE=pngalpha -r300 -o /tmp/tokyo.png $MAP_DIR/original/tokyo.pdf
+          convert /tmp/tokyo.png \
+                  -crop 2400x600+300+1850 +repage \
+                  -resize "$TARGET_SIZE!" -strip \
+                  $MAP_DIR/cropped/tokyo-centre.png
+
+      # ---------- 3. 提交更改（若有） ----------
+      - name: Commit & push if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add $MAP_DIR/cropped/*
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: refresh subway strips $(date +'%Y-%m-%d')"
+            git push
+          fi

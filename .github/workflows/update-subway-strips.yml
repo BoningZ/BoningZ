@@ -10,57 +10,54 @@ jobs:
     env:
       MAP_DIR: assets/maps
       TARGET_SIZE: 1200x300
-      LONDON_URL: https://tfl.gov.uk/cdn/static/cms/images/london-rail-and-tube-services-map.gif
-      TOKYO_URL:  https://www.tokyometro.jp/station/202303_number_ja.pdf
-      BJ_PAGE:    https://www.bjsubway.com/jpg.html?pic=2025
+      LONDON_URL:  https://tfl.gov.uk/cdn/static/cms/images/london-rail-and-tube-services-map.gif
+      TOKYO_URL:   https://www.tokyometro.jp/station/202303_number_ja.pdf
+      BEIJING_URL: https://cdnwww.mtr.bj.cn/bjmtr/default/wzOcGboigSuVhbSIGeFgH.jpg   # ← 新地址
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.METRICS_TOKEN }}
+        with: { token: ${{ secrets.METRICS_TOKEN }} }
 
-      - name: Install dependencies
+      - name: Install deps
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y ghostscript imagemagick curl jq
+          sudo apt-get install -y ghostscript imagemagick curl
 
-      # -------- ① 下载三张原图 --------
+      # ① 下载三张源图
       - name: Download originals
         run: |
           mkdir -p $MAP_DIR/original
+          curl -L -o $MAP_DIR/original/london.gif   "$LONDON_URL"
+          curl -L -o $MAP_DIR/original/tokyo.pdf    "$TOKYO_URL"
+          curl -L -o $MAP_DIR/original/beijing.jpg  "$BEIJING_URL"
 
-          # London (GIF)
-          curl -L -o $MAP_DIR/original/london.gif  "$LONDON_URL"
-
-          # Tokyo (PDF)
-          curl -L -o $MAP_DIR/original/tokyo.pdf   "$TOKYO_URL"
-
-          # Beijing —— 先抓页面再取第一张 jpg/png
-          BJ_IMG_URL=$(curl -sL "$BJ_PAGE" | grep -Eo 'https?://[^"]+\.(jpg|png)' | head -n1)
-          if [ -z "$BJ_IMG_URL" ]; then
-            echo "::error::❌ 解析北京地铁线路图 URL 失败"; exit 1
-          fi
-          curl -L -o $MAP_DIR/original/beijing.jpg "$BJ_IMG_URL"
-
-      # -------- ② 裁剪 + 统一尺寸 --------
+      # ② 裁剪 ➜ 统一尺寸
       - name: Crop centre strips
         run: |
           mkdir -p $MAP_DIR/cropped
-
-          # ▶ 请按实际测量把下面 WxH+X+Y 改成你的值
+          # ★ 请替换为你真实测量的 WxH+X+Y ★
           convert $MAP_DIR/original/london.gif  -crop 2500x600+200+1600 +repage -resize "$TARGET_SIZE!" -strip $MAP_DIR/cropped/london-centre.png
           convert $MAP_DIR/original/beijing.jpg -crop 1800x500+900+1800 +repage -resize "$TARGET_SIZE!" -strip $MAP_DIR/cropped/beijing-centre.png
           gs -q -sDEVICE=pngalpha -r300 -o /tmp/tokyo.png $MAP_DIR/original/tokyo.pdf
-          convert /tmp/tokyo.png                 -crop 2400x600+300+1850 +repage -resize "$TARGET_SIZE!" -strip $MAP_DIR/cropped/tokyo-centre.png
+          convert /tmp/tokyo.png                -crop 2400x600+300+1850 +repage -resize "$TARGET_SIZE!" -strip $MAP_DIR/cropped/tokyo-centre.png
 
-      # -------- ③ 只有变动才提交 --------
+      # …前半部分与之前一致（下载 + 裁剪）…
+
+      # ③ 把三种日期写回 README
+      - name: Update README dates
+        run: |
+          Y=$(date +%Y) ; M=$(date +%-m) ; D=$(date +%-d)
+          EN="${Y}-$(printf '%02d' $M)-$(printf '%02d' $D)"           # 2025-08-06
+          CN="${Y}年${M}月${D}日"                                      # 2025年8月6日
+          ERA=$((Y-2018)) ; JP="令和${ERA}年${M}月${D}日"              # 令和7年8月6日
+
+          sed -i -E "s|(<!--MAP_UPDATE_DATE_EN-->).*?(<!--/MAP_UPDATE_DATE_EN-->)|\1${EN}\2|" README.md
+          sed -i -E "s|(<!--MAP_UPDATE_DATE_CN-->).*?(<!--/MAP_UPDATE_DATE_CN-->)|\1${CN}\2|" README.md
+          sed -i -E "s|(<!--MAP_UPDATE_DATE_JP-->).*?(<!--/MAP_UPDATE_DATE_JP-->)|\1${JP}\2|" README.md
+
+      # ④ 仅在有变化时提交
       - name: Commit & push if changed
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add $MAP_DIR/cropped/*
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: refresh subway strips $(date +'%Y-%m-%d')"
-            git push
-          else
-            echo "No map updates."
-          fi
+          git config user.name  github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+          git add assets/maps/cropped/* README.md
+          git diff --cached --quiet || { git commit -m "chore: subway strips & date update $(date +'%F')" && git push ; }

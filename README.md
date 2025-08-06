@@ -10,17 +10,14 @@
 
 ---
 
-<p align="center"><strong>London</strong></p>
 <p align="center">
   <img src="assets/maps/cropped/london-centre.png" alt="London Rail &amp; Tube centre" />
 </p>
 
-<p align="center"><strong>北京</strong></p>
 <p align="center">
   <img src="assets/maps/cropped/beijing-centre.png" alt="Beijing Subway centre" />
 </p>
 
-<p align="center"><strong>東京</strong></p>
 <p align="center">
   <img src="assets/maps/cropped/tokyo-centre.png" alt="Tokyo Metro centre" />
 </p>
@@ -28,3 +25,4 @@
 - London Rail & Tube Services Map © Transport for London & Rail Delivery Group, July 2025 — personal use only  
 - 北京地铁线路图 © 北京京港地铁有限公司，2025 年 6 月 2 日发布 — 仅供个人学习使用  
 - 東京メトロ 駅番号路線図 © 東京地下鉄株式会社，2023 年 — 個人利用のみに限り使用可
+

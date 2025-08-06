@@ -1,7 +1,7 @@
 name: Update & crop subway strips daily
 on:
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 3 * * *'          # 每天 UTC 03:00
   workflow_dispatch:
 
 jobs:
@@ -10,6 +10,9 @@ jobs:
     env:
       MAP_DIR: assets/maps
       TARGET_SIZE: 1200x300
+      LONDON_URL: https://tfl.gov.uk/cdn/static/cms/images/london-rail-and-tube-services-map.gif
+      TOKYO_URL:  https://www.tokyometro.jp/station/202303_number_ja.pdf
+      BJ_PAGE:    https://www.bjsubway.com/jpg.html?pic=2025
     steps:
       - uses: actions/checkout@v4
         with:
@@ -17,42 +20,39 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ghostscript imagemagick curl
+          sudo apt-get update -y
+          sudo apt-get install -y ghostscript imagemagick curl jq
 
-      # ---------- 1. 下载最新地图 ----------
+      # -------- ① 下载三张原图 --------
       - name: Download originals
         run: |
           mkdir -p $MAP_DIR/original
-          curl -L -o $MAP_DIR/original/london.gif  https://tfl.gov.uk/cdn/static/cms/images/london-rail-and-tube-services-map.gif
-          curl -L -o $MAP_DIR/original/beijing.jpg $(curl -sL https://www.bjsubway.com/jpg.html?pic=2024 | grep -oP '(?<=src=").+?\.jpg')
-          curl -L -o $MAP_DIR/original/tokyo.pdf   https://www.tokyometro.jp/station/202303_number_ja.pdf   # ← 新链接
 
-      # ---------- 2. 裁剪成统一尺寸横幅 ----------
+          # London (GIF)
+          curl -L -o $MAP_DIR/original/london.gif  "$LONDON_URL"
+
+          # Tokyo (PDF)
+          curl -L -o $MAP_DIR/original/tokyo.pdf   "$TOKYO_URL"
+
+          # Beijing —— 先抓页面再取第一张 jpg/png
+          BJ_IMG_URL=$(curl -sL "$BJ_PAGE" | grep -Eo 'https?://[^"]+\.(jpg|png)' | head -n1)
+          if [ -z "$BJ_IMG_URL" ]; then
+            echo "::error::❌ 解析北京地铁线路图 URL 失败"; exit 1
+          fi
+          curl -L -o $MAP_DIR/original/beijing.jpg "$BJ_IMG_URL"
+
+      # -------- ② 裁剪 + 统一尺寸 --------
       - name: Crop centre strips
         run: |
           mkdir -p $MAP_DIR/cropped
 
-          # London —— 请替换为你的坐标
-          convert $MAP_DIR/original/london.gif \
-                  -crop 2500x600+200+1600 +repage \
-                  -resize "$TARGET_SIZE!" -strip \
-                  $MAP_DIR/cropped/london-centre.png
-
-          # Beijing —— 请替换为你的坐标
-          convert $MAP_DIR/original/beijing.jpg \
-                  -crop 1800x500+900+1800 +repage \
-                  -resize "$TARGET_SIZE!" -strip \
-                  $MAP_DIR/cropped/beijing-centre.png
-
-          # Tokyo —— 先 PDF→PNG，再裁剪；请替换为你的坐标
+          # ▶ 请按实际测量把下面 WxH+X+Y 改成你的值
+          convert $MAP_DIR/original/london.gif  -crop 2500x600+200+1600 +repage -resize "$TARGET_SIZE!" -strip $MAP_DIR/cropped/london-centre.png
+          convert $MAP_DIR/original/beijing.jpg -crop 1800x500+900+1800 +repage -resize "$TARGET_SIZE!" -strip $MAP_DIR/cropped/beijing-centre.png
           gs -q -sDEVICE=pngalpha -r300 -o /tmp/tokyo.png $MAP_DIR/original/tokyo.pdf
-          convert /tmp/tokyo.png \
-                  -crop 2400x600+300+1850 +repage \
-                  -resize "$TARGET_SIZE!" -strip \
-                  $MAP_DIR/cropped/tokyo-centre.png
+          convert /tmp/tokyo.png                 -crop 2400x600+300+1850 +repage -resize "$TARGET_SIZE!" -strip $MAP_DIR/cropped/tokyo-centre.png
 
-      # ---------- 3. 提交更改（若有） ----------
+      # -------- ③ 只有变动才提交 --------
       - name: Commit & push if changed
         run: |
           git config user.name  "github-actions[bot]"
@@ -61,4 +61,6 @@ jobs:
           if ! git diff --cached --quiet; then
             git commit -m "chore: refresh subway strips $(date +'%Y-%m-%d')"
             git push
+          else
+            echo "No map updates."
           fi

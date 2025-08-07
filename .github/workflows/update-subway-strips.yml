@@ -12,7 +12,7 @@ jobs:
       MAP_DIR: assets/maps
       TARGET_SIZE: 1200x300
       LONDON_URL:  https://content.tfl.gov.uk/london-rail-and-tube-services-map.pdf
-      TOKYO_URL:   https://www.tokyometro.jp/station/202303_number_ja.pdf
+      TOKYO_URL:   https://www.pasmo.co.jp/area/train/all.pdf
       BEIJING_URL: https://imgbdb4.bendibao.com/bjbdb/202412/13/20241213172847_31099.jpg
 
     steps:
@@ -40,11 +40,28 @@ jobs:
         run: |
           mkdir -p $MAP_DIR/cropped
           # ★ 请替换为你真实测量的 WxH+X+Y ★
+          # London
           gs -q -sDEVICE=pngalpha -r300 -o /tmp/london.png "$MAP_DIR/original/london.pdf"
-          convert /tmp/london.png -crop 2500x600+200+1600 +repage -resize "$TARGET_SIZE!" -strip "$MAP_DIR/cropped/london-centre.png"
-          convert $MAP_DIR/original/beijing.jpg -crop 1800x500+900+1800 +repage -resize "$TARGET_SIZE!" -strip $MAP_DIR/cropped/beijing-centre.png
-          gs -q -sDEVICE=pngalpha -r300 -o /tmp/tokyo.png $MAP_DIR/original/tokyo.pdf
-          convert /tmp/tokyo.png                -crop 2400x600+300+1850 +repage -resize "$TARGET_SIZE!" -strip $MAP_DIR/cropped/tokyo-centre.png
+          convert /tmp/london.png \
+                  -crop 2209x553+1088+1003 +repage \
+                  -background white -alpha remove -alpha off \
+                  -resize "$TARGET_SIZE!" -strip \
+                  "$MAP_DIR/cropped/london-centre.png"
+          
+          # Beijing（原 JPG，无透明，不用改）
+          convert "$MAP_DIR/original/beijing.jpg" \
+                  -crop 1850x463+352+753 +repage \
+                  -resize "$TARGET_SIZE!" -strip \
+                  "$MAP_DIR/cropped/beijing-centre.png"
+          
+          # Tokyo
+          gs -q -sDEVICE=pngalpha -r300 -o /tmp/tokyo.png "$MAP_DIR/original/tokyo.pdf"
+          convert /tmp/tokyo.png \
+                  -crop 3217x805+273+884 +repage \
+                  -background white -alpha remove -alpha off \
+                  -resize "$TARGET_SIZE!" -strip \
+                  "$MAP_DIR/cropped/tokyo-centre.png"
+
 
       # ⑤ 把三种日期写回 README（保持不变）
       - name: Update README dates

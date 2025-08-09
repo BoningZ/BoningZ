@@ -8,7 +8,7 @@
 
 ![Languages](./metrics.svg)
 
-![My Skills](https://go-skill-icons.vercel.app/api/icons?i=cpp,c,java,python,javascript,typescript,qt,nodejs,react,vuejs,mysql,mongodb,neo4j,tidb,spring,springdatajpa,elementplus,eslint,axios,flask,numpy,matplotlib,pandas,opencv,selenium,junit,html,golang,perl,latex,regex,maven,git,github,githubpages,githubactions,nginx,leaflet,docker,bash,powershell,ffmpeg,cmake,vmwareworkstation,anaconda,npm,windows,ubuntu,kali,chatgpt,deepseek,claude,gemini,idea,vscode,cursor,tor,audition,lightroom,photoshop,premiere,unity,obs,overleaf)
+![My Skills](https://go-skill-icons.vercel.app/api/icons?i=cpp,c,java,python,javascript,typescript,qt,nodejs,react,vuejs,mysql,mongodb,neo4j,tidb,spring,springdatajpa,elementplus,eslint,axios,flask,numpy,matplotlib,pandas,opencv,selenium,junit,html,golang,perl,latex,regex,maven,git,github,githubpages,githubactions,nginx,leaflet,docker,bash,powershell,ffmpeg,vmwareworkstation,windows,ubuntu,kali,chatgpt,deepseek,claude,gemini,idea,vscode,cursor,tor,audition,lightroom,photoshop,premiere,unity,obs)
 
 ---
 

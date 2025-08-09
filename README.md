@@ -8,7 +8,7 @@
 
 ![Languages](./metrics.svg)
 
-![My Skills](https://go-skill-icons.vercel.app/api/icons?i=cpp,c,java,python,javascript,typescript,qt,nodejs,react,vuejs,mysql,mongodb,neo4j,tidb,spring,springdatajpa,elementplus,eslint,axios,flask,numpy,matplotlib,pandas,opencv,selenium,junit,html,css,golang,perl,latex,markdown,regex,maven,session,yaml,git,github,opensource,githubpages,githubactions,nginx,leaflet,docker,terminal,bash,powershell,api,ffmpeg,cmake,vmwareworkstation,anaconda,npm,wsl,windows,linux,android,debian,ubuntu,kali,chatgpt,deepseek,claude,gemini,idea,webstorm,pycharm,vscode,uml,vim,cursor,edge,chrome,tor,audition,lightroom,photoshop,premiere,acrobat,blender,unity,excel,powerpoint,obs,onedrive,overleaf)
+![My Skills](https://go-skill-icons.vercel.app/api/icons?i=cpp,c,java,python,javascript,typescript,qt,nodejs,react,vuejs,mysql,mongodb,neo4j,tidb,spring,springdatajpa,elementplus,eslint,axios,flask,numpy,matplotlib,pandas,opencv,selenium,junit,html,golang,perl,latex,regex,maven,git,github,githubpages,githubactions,nginx,leaflet,docker,bash,powershell,ffmpeg,cmake,vmwareworkstation,anaconda,npm,windows,ubuntu,kali,chatgpt,deepseek,claude,gemini,idea,vscode,cursor,tor,audition,lightroom,photoshop,premiere,unity,obs,overleaf)
 
 ---
 

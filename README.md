@@ -24,9 +24,9 @@
   <img src="assets/maps/cropped/tokyo-centre.png" alt="Tokyo Metro centre" />
 </p>
 
-- London Rail & Tube Services Map © Transport for London & Rail Delivery Group — personal use only（<!--MAP_UPDATE_DATE_EN-->2025-11-30<!--/MAP_UPDATE_DATE_EN-->）  
-- 北京地铁线路图 © 北京京港地铁有限公司 — 仅供个人学习使用（<!--MAP_UPDATE_DATE_CN-->2025年11月30日<!--/MAP_UPDATE_DATE_CN-->）  
-- PASMO・Suica路線図（首都圏エリア）© 株式会社パスモ 2025年4月1日 — 個人利用のみ可（<!--MAP_UPDATE_DATE_JP-->令和7年11月30日<!--/MAP_UPDATE_DATE_JP-->）
+- London Rail & Tube Services Map © Transport for London & Rail Delivery Group — personal use only（<!--MAP_UPDATE_DATE_EN-->2025-12-01<!--/MAP_UPDATE_DATE_EN-->）  
+- 北京地铁线路图 © 北京京港地铁有限公司 — 仅供个人学习使用（<!--MAP_UPDATE_DATE_CN-->2025年12月1日<!--/MAP_UPDATE_DATE_CN-->）  
+- PASMO・Suica路線図（首都圏エリア）© 株式会社パスモ 2025年4月1日 — 個人利用のみ可（<!--MAP_UPDATE_DATE_JP-->令和7年12月1日<!--/MAP_UPDATE_DATE_JP-->）
 
 
 

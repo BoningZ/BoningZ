@@ -1,7 +1,7 @@
 ﻿### 你好 👋
 
-- 🎓 I’m an MSc candidate in **Software Systems Engineering** at **UCL**, graduating in **September 2025**.  
-  Right now I’m interning at **Cisco** on the *Visual Inspection Tool* project, building a Qt-based video player and rendering pipeline.
+- 💻 I’m a developer at **Alibaba**.
+- 🎓 I graduated from **UCL** with an MSc in **Software Systems Engineering**.
 - 🌱 Currently leveling-up on **video processing**, **LLM applications**, and **large-scale data engineering**.
 - 📫 Reach me at **zhangboningjack@gmail.com**.
 - 🏅 ICPC medalist, open-source enthusiast, and life-long learner.
@@ -13,20 +13,27 @@
 ---
 
 <p align="center">
-  <img src="assets/maps/cropped/london-centre.png" alt="London Rail &amp; Tube centre" />
+  <a href="https://content.tfl.gov.uk/london-rail-and-tube-services-map.pdf">
+    <img src="assets/maps/cropped/london-centre.png" alt="Central London Rail &amp; Tube map" />
+  </a>
 </p>
 
 <p align="center">
-  <img src="assets/maps/cropped/beijing-centre.png" alt="Beijing Subway centre" />
+  <a href="https://www.mtr.bj.cn/article/line">
+    <img src="assets/maps/cropped/beijing-centre.png" alt="Central Beijing subway map" />
+  </a>
 </p>
 
 <p align="center">
-  <img src="assets/maps/cropped/tokyo-centre.png" alt="Tokyo Metro centre" />
+  <a href="https://www.pasmo.co.jp/assets/pdf/area/all.pdf">
+    <img src="assets/maps/cropped/tokyo-centre.png" alt="Central Tokyo PASMO and Suica rail map" />
+  </a>
 </p>
 
-- London Rail & Tube Services Map © Transport for London & Rail Delivery Group — personal use only（<!--MAP_UPDATE_DATE_EN-->2026-10-09<!--/MAP_UPDATE_DATE_EN-->）  
-- 北京地铁线路图 © 北京京港地铁有限公司 — 仅供个人学习使用（<!--MAP_UPDATE_DATE_CN-->2026年10月9日<!--/MAP_UPDATE_DATE_CN-->）  
-- PASMO・Suica路線図（首都圏エリア）© 株式会社パスモ 2025年4月1日 — 個人利用のみ可（<!--MAP_UPDATE_DATE_JP-->令和8年10月9日<!--/MAP_UPDATE_DATE_JP-->）
+- London Rail & Tube Services Map © Transport for London & Rail Delivery Group — personal use only; last fetched（<!--MAP_UPDATE_DATE_EN-->2026-10-10<!--/MAP_UPDATE_DATE_EN-->）  
+- 北京地铁线路图 © 北京京港地铁有限公司 — 仅供个人学习使用；最近获取（<!--MAP_UPDATE_DATE_CN-->2026年10月10日<!--/MAP_UPDATE_DATE_CN-->）  
+- PASMO・Suica路線図（首都圏エリア）© 株式会社パスモ — 個人利用のみ可；最終取得（<!--MAP_UPDATE_DATE_JP-->令和8年10月10日<!--/MAP_UPDATE_DATE_JP-->）
+
 
 
 

@@ -12,8 +12,8 @@ jobs:
       MAP_DIR: assets/maps
       TARGET_SIZE: 1200x300
       LONDON_URL:  https://content.tfl.gov.uk/london-rail-and-tube-services-map.pdf
-      TOKYO_URL:   https://www.pasmo.co.jp/area/train/all.pdf
-      BEIJING_URL: https://imgbdb4.bendibao.com/bjbdb/202412/13/20241213172847_31099.jpg
+      TOKYO_URL:   https://www.pasmo.co.jp/assets/pdf/area/all.pdf
+      BEIJING_PAGE_URL: https://www.mtr.bj.cn/article/line
 
     steps:
       # ① 检出仓库（改成多行写法）
@@ -25,45 +25,96 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y ghostscript imagemagick curl
+          sudo apt-get install -y poppler-utils imagemagick curl
 
       # ③ 下载三张源图
       - name: Download originals
         run: |
           mkdir -p $MAP_DIR/original
-          curl -L -o $MAP_DIR/original/london.pdf   "$LONDON_URL"
-          curl -L -o $MAP_DIR/original/tokyo.pdf    "$TOKYO_URL"
-          curl -L -o $MAP_DIR/original/beijing.jpg  "$BEIJING_URL"
+          curl --fail --location --show-error --retry 3 --connect-timeout 20 --max-time 120 -o $MAP_DIR/original/london.pdf   "$LONDON_URL"
+          curl --fail --location --show-error --retry 3 --connect-timeout 20 --max-time 120 -o $MAP_DIR/original/tokyo.pdf    "$TOKYO_URL"
+          curl --fail --location --show-error --retry 3 --connect-timeout 20 --max-time 120 -o "$MAP_DIR/original/beijing.html" "$BEIJING_PAGE_URL"
+          # 每天从官方线路图正文解析当前图片，不固定某一版本的文件名。
+          BEIJING_URL=$(python3 - <<'PYTHON'
+          import os
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import urljoin, urlparse
+
+          class MapParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.depth = 0
+                  self.images = []
+
+              def handle_starttag(self, tag, attrs):
+                  attrs = dict(attrs)
+                  if tag == "div":
+                      if self.depth:
+                          self.depth += 1
+                      elif "article-content" in attrs.get("class", "").split():
+                          self.depth = 1
+                  if self.depth and tag == "img" and attrs.get("src"):
+                      self.images.append(urljoin(os.environ["BEIJING_PAGE_URL"], attrs["src"]))
+
+              def handle_endtag(self, tag):
+                  if tag == "div" and self.depth:
+                      self.depth -= 1
+
+          parser = MapParser()
+          parser.feed(Path(os.environ["MAP_DIR"], "original/beijing.html").read_text())
+          urls = list(dict.fromkeys(parser.images))
+          if len(urls) != 1:
+              raise SystemExit("Expected one official map image; review the Beijing page before updating.")
+          parsed = urlparse(urls[0])
+          if parsed.scheme != "https" or parsed.netloc != "cdnwww.mtr.bj.cn":
+              raise SystemExit("Unexpected Beijing map image host; refusing to download.")
+          print(urls[0])
+          PYTHON
+          )
+          curl --fail --location --show-error --retry 3 --connect-timeout 20 --max-time 120 -o "$MAP_DIR/original/beijing.jpg" "$BEIJING_URL"
 
       # ④ 裁剪 ➜ 统一尺寸
       - name: Crop centre strips
         run: |
           mkdir -p $MAP_DIR/cropped
-          # ★ 请替换为你真实测量的 WxH+X+Y ★
+          # 原图尺寸变化时保留现有图片，等待人工重新校准，而不是发布错位裁剪。
+          check_dimensions() {
+            actual=$(identify -format '%wx%h' "$1")
+            if [ "$actual" != "$2" ]; then
+              echo "::error::Map dimensions changed: $1 ($actual, expected $2). Recalibrate the crop."
+              exit 1
+            fi
+          }
+          # 2026 年官方原图实测裁剪区域；保留 4:1 比例，不拉伸。
+          # PDF 只渲染地图所在的第一页，避免附录页影响输出。
           # London
-          gs -q -sDEVICE=pngalpha -r300 -o /tmp/london.png "$MAP_DIR/original/london.pdf"
+          pdftoppm -f 1 -singlefile -r 300 -png "$MAP_DIR/original/london.pdf" /tmp/london
+          check_dimensions /tmp/london.png 3957x2953
           convert /tmp/london.png \
-                  -crop 2209x553+1088+1003 +repage \
+                  -crop 1800x450+1450+1040 +repage \
                   -background white -alpha remove -alpha off \
-                  -resize "$TARGET_SIZE!" -strip \
+                  -resize "$TARGET_SIZE" -strip \
                   "$MAP_DIR/cropped/london-centre.png"
           
-          # Beijing（原 JPG，无透明，不用改）
+          # Beijing（裁剪基准：京港地铁官方 2026-05-16 线路图）
+          check_dimensions "$MAP_DIR/original/beijing.jpg" 6564x6537
           convert "$MAP_DIR/original/beijing.jpg" \
-                  -crop 1850x463+352+753 +repage \
-                  -resize "$TARGET_SIZE!" -strip \
+                  -crop 3300x825+1700+3300 +repage \
+                  -resize "$TARGET_SIZE" -strip \
                   "$MAP_DIR/cropped/beijing-centre.png"
           
           # Tokyo
-          gs -q -sDEVICE=pngalpha -r300 -o /tmp/tokyo.png "$MAP_DIR/original/tokyo.pdf"
+          pdftoppm -f 1 -singlefile -r 300 -png "$MAP_DIR/original/tokyo.pdf" /tmp/tokyo
+          check_dimensions /tmp/tokyo.png 5705x3886
           convert /tmp/tokyo.png \
-                  -crop 3217x805+273+884 +repage \
+                  -crop 3200x800+2150+1800 +repage \
                   -background white -alpha remove -alpha off \
-                  -resize "$TARGET_SIZE!" -strip \
+                  -resize "$TARGET_SIZE" -strip \
                   "$MAP_DIR/cropped/tokyo-centre.png"
 
 
-      # ⑤ 把三种日期写回 README（保持不变）
+      # ⑤ 记录获取日期（不是地图版本日期）
       - name: Update README dates
         run: |
           Y=$(date +%Y); M=$(date +%-m); D=$(date +%-d)
@@ -85,3 +136,4 @@ jobs:
             git commit -m "chore: subway strips & date update $(date +'%F')"
             git push
           }
+
